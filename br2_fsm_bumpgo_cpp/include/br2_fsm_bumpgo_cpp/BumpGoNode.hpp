@@ -17,7 +17,7 @@
 
 #include "sensor_msgs/msg/laser_scan.hpp"
 #include "geometry_msgs/msg/twist.hpp"
-
+#include <rclcpp/duration.hpp>
 #include "rclcpp/rclcpp.hpp"
 
 namespace br2_fsm_bumpgo_cpp
@@ -39,18 +39,23 @@ private:
   static const int TURN = 2;
   static const int STOP = 3;
   int state_;
+  bool started_turning;
+  int sign;
+  rclcpp::Duration turning_time {0s};
   rclcpp::Time state_ts_;
 
   void go_state(int new_state);
   bool check_forward_2_back();
   bool check_forward_2_stop();
   bool check_back_2_turn();
-  bool check_turn_2_forward();
+  bool check_turn_2_forward(rclcpp::Duration);
   bool check_stop_2_forward();
 
-  const rclcpp::Duration TURNING_TIME {2s};
+  const rclcpp::Duration TURNING_TIME { 2s };
   const rclcpp::Duration BACKING_TIME {2s};
   const rclcpp::Duration SCAN_TIMEOUT {1s};
+  const float RANGE_MAX = 25.0;
+  const float RANGE_MIN = 0.05;
 
   static constexpr float SPEED_LINEAR = 0.3f;
   static constexpr float SPEED_ANGULAR = 0.3f;

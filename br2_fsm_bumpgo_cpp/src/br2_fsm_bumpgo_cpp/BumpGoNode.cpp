@@ -11,7 +11,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
 #include <utility>
 #include "br2_fsm_bumpgo_cpp/BumpGoNode.hpp"
 
@@ -36,8 +35,8 @@ BumpGoNode::BumpGoNode()
 
   vel_pub_ = create_publisher<geometry_msgs::msg::Twist>("output_vel", 10);
   timer_ = create_wall_timer(50ms, std::bind(&BumpGoNode::control_cycle, this));
-
   state_ts_ = now();
+  
 }
 
 void
@@ -72,16 +71,35 @@ BumpGoNode::control_cycle()
       out_vel.linear.x = -SPEED_LINEAR;
 
       if (check_back_2_turn()) {
+        started_turning = false;
         go_state(TURN);
       }
       break;
     case TURN:
-      out_vel.angular.z = SPEED_ANGULAR;
+      if (!started_turning) { // figure out the direction and duration of turning!
+        auto right_m = last_scan_->ranges[60];
+        auto left_m = last_scan_->ranges[606];
 
-      if (check_turn_2_forward()) {
-        go_state(FORWARD);
+        if (left_m < (RANGE_MIN + RANGE_MAX/10) && right_m < (RANGE_MIN + RANGE_MAX/10)) {
+          turning_time = 10s;
+          sign = 1;
+        } else if(left_m > right_m) { 
+          turning_time = 6s;
+          sign = 1;
+        } else if (right_m > left_m) {
+          turning_time = 6s;
+          sign = -1;
+        }
+        started_turning = true;
       }
 
+      
+      out_vel.angular.z = sign*SPEED_ANGULAR;  
+      
+      if (check_turn_2_forward(turning_time)) {
+        go_state(FORWARD);
+      }
+      
       break;
     case STOP:
       if (check_stop_2_forward()) {
@@ -134,10 +152,10 @@ BumpGoNode::check_back_2_turn()
 }
 
 bool
-BumpGoNode::check_turn_2_forward()
+BumpGoNode::check_turn_2_forward(rclcpp::Duration turning_time)
 {
-  // Turning for 2 seconds
-  return (now() - state_ts_) > TURNING_TIME;
+  // Turning for TURNING_TIME seconds
+  return (now() - state_ts_) > turning_time;
 }
 
 }  // namespace br2_fsm_bumpgo_cpp
