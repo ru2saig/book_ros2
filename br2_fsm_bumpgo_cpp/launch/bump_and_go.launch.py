@@ -22,6 +22,7 @@ def generate_launch_description():
                       executable='bumpgo',
                       output='screen',
                       parameters=[{
+                        'clear_distance': 5.0,
                         'use_sim_time': True
                       }],
                       remappings=[

@@ -39,6 +39,7 @@ private:
   static const int TURN = 2;
   static const int STOP = 3;
   int state_;
+  float clear_distance = 5.0f;
   rclcpp::Time state_ts_;
 
   void go_state(int new_state);
@@ -55,6 +56,7 @@ private:
   static constexpr float SPEED_LINEAR = 0.3f;
   static constexpr float SPEED_ANGULAR = 0.3f;
   static constexpr float OBSTACLE_DISTANCE = 1.0f;
+  
 
   rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr scan_sub_;
   rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr vel_pub_;

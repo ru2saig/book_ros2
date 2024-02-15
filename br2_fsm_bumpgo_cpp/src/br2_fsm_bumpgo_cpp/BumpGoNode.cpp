@@ -37,6 +37,12 @@ BumpGoNode::BumpGoNode()
   vel_pub_ = create_publisher<geometry_msgs::msg::Twist>("output_vel", 10);
   timer_ = create_wall_timer(50ms, std::bind(&BumpGoNode::control_cycle, this));
 
+  declare_parameter("clear_distance", 5.0f);
+
+  get_parameter("clear_distance", clear_distance);
+  RCLCPP_INFO_STREAM(get_logger(), "clear distance: " << clear_distance);
+
+
   state_ts_ = now();
 }
 
@@ -136,8 +142,9 @@ BumpGoNode::check_back_2_turn()
 bool
 BumpGoNode::check_turn_2_forward()
 {
-  // Turning for 2 seconds
-  return (now() - state_ts_) > TURNING_TIME;
+  // Turning until empty space has been found
+  size_t pos = last_scan_->ranges.size() / 2;
+  return last_scan_->ranges[pos] > clear_distance;
 }
 
 }  // namespace br2_fsm_bumpgo_cpp
