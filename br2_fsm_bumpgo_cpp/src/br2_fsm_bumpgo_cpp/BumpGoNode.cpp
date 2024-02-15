@@ -71,12 +71,6 @@ BumpGoNode::control_cycle()
       out_vel.linear.x = -SPEED_LINEAR;
 
       if (check_back_2_turn()) {
-        started_turning = false;
-        go_state(TURN);
-      }
-      break;
-    case TURN:
-      if (!started_turning) { // figure out the direction and duration of turning!
         auto right_m = last_scan_->ranges[60];
         auto left_m = last_scan_->ranges[606];
 
@@ -90,10 +84,11 @@ BumpGoNode::control_cycle()
           turning_time = 6s;
           sign = -1;
         }
-        started_turning = true;
-      }
 
-      
+        go_state(TURN);
+      }
+      break;
+    case TURN:
       out_vel.angular.z = sign*SPEED_ANGULAR;  
       
       if (check_turn_2_forward(turning_time)) {
