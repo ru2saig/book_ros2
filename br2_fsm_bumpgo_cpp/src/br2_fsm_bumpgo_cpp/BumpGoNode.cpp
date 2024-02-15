@@ -12,6 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <algorithm>
+#include <cmath>
+#include <cstdint>
+#include <rclcpp/duration.hpp>
 #include <utility>
 #include "br2_fsm_bumpgo_cpp/BumpGoNode.hpp"
 
@@ -72,11 +76,34 @@ BumpGoNode::control_cycle()
       out_vel.linear.x = -SPEED_LINEAR;
 
       if (check_back_2_turn()) {
+        
+        // compute turning time and all that fun stuff
+        // essentially, find the furtherest after backing up, and then turning for about how long it should take to get to there
+        float maximum_dist = -1;
+        int index = 0;
+        for(int i = 0; i < last_scan_->ranges.size(); i++) {
+          auto current_scan = last_scan_->ranges[i];
+          if (current_scan > 0.05 && current_scan < 25.0) {
+            if (current_scan > maximum_dist)
+            {
+              maximum_dist = current_scan;
+              index = i;
+            }
+          }
+        }
+        
+        sign_mult = (index > 333) ? 1 : -1;
+        float sec_float = (std::abs(333 - index) * SENSOR_RESOLUTION * 2)/0.3;
+        // conversion into seconds + ns, for the first constructor of rclcpp::Duration
+        int32_t seconds = int(sec_float);
+        uint32_t ns = uint32_t((sec_float - seconds) * 10e9);
+        TURNING_TIME = rclcpp::Duration(seconds, ns);
+
         go_state(TURN);
       }
       break;
     case TURN:
-      out_vel.angular.z = SPEED_ANGULAR;
+      out_vel.angular.z = sign_mult * SPEED_ANGULAR;
 
       if (check_turn_2_forward()) {
         go_state(FORWARD);
@@ -130,13 +157,13 @@ bool
 BumpGoNode::check_back_2_turn()
 {
   // Going back for 2 seconds
-  return (now() - state_ts_) > BACKING_TIME;
+  return (now() - state_ts_) >  BACKING_TIME;
 }
 
 bool
 BumpGoNode::check_turn_2_forward()
 {
-  // Turning for 2 seconds
+  // Turning until we are heading to that distance, or until the time predicted is done 
   return (now() - state_ts_) > TURNING_TIME;
 }
 

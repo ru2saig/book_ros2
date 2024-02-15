@@ -19,6 +19,7 @@
 #include "geometry_msgs/msg/twist.hpp"
 
 #include "rclcpp/rclcpp.hpp"
+#include <rclcpp/duration.hpp>
 
 namespace br2_fsm_bumpgo_cpp
 {
@@ -39,7 +40,11 @@ private:
   static const int TURN = 2;
   static const int STOP = 3;
   int state_;
+  int sign_mult;
   rclcpp::Time state_ts_;
+  rclcpp::Duration TURNING_TIME {0s}; // how long to turn for (s)
+  float TARGET_DISTANCE; // target distance-from-robot to reach
+  static constexpr float ERR = 0.01f; // a bit of leeway, comes out to about 10cm
 
   void go_state(int new_state);
   bool check_forward_2_back();
@@ -48,12 +53,13 @@ private:
   bool check_turn_2_forward();
   bool check_stop_2_forward();
 
-  const rclcpp::Duration TURNING_TIME {2s};
-  const rclcpp::Duration BACKING_TIME {2s};
+
+  const rclcpp::Duration BACKING_TIME { 2s};
   const rclcpp::Duration SCAN_TIMEOUT {1s};
 
   static constexpr float SPEED_LINEAR = 0.3f;
   static constexpr float SPEED_ANGULAR = 0.3f;
+  static constexpr double SENSOR_RESOLUTION = 0.00577402; // angle increment of the sensor
   static constexpr float OBSTACLE_DISTANCE = 1.0f;
 
   rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr scan_sub_;
