@@ -80,8 +80,10 @@ ObstacleMonitorNode::control_cycle()
   end.z = z;
   obstacle_arrow.points = {start, end};
 
-  obstacle_arrow.color.r = 1.0;
-  obstacle_arrow.color.g = 0.0;
+  auto mag_squared = x*x + y*y + z*z;
+
+  obstacle_arrow.color.r = 1.0 * (mag_squared < DISTANCE_THRESH_SQUARED);
+  obstacle_arrow.color.g = 1.0 * (mag_squared >= DISTANCE_THRESH_SQUARED);
   obstacle_arrow.color.b = 0.0;
   obstacle_arrow.color.a = 1.0;
 

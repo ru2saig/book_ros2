@@ -42,6 +42,7 @@ private:
   tf2_ros::TransformListener tf_listener_;
 
   rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr marker_pub_;
+  const float DISTANCE_THRESH_SQUARED = 25.0;
 };
 
 }  // namespace br2_tf2_detector
