@@ -45,12 +45,18 @@ void
 ObstacleMonitorNode::control_cycle()
 {
   geometry_msgs::msg::TransformStamped robot2obstacle;
+  geometry_msgs::msg::TransformStamped odom2obstacle;
+  geometry_msgs::msg::TransformStamped head2link2obstacle;
 
   try {
     robot2obstacle = tf_buffer_.lookupTransform(
       "base_footprint", "detected_obstacle", tf2::TimePointZero);
+    odom2obstacle = tf_buffer_.lookupTransform(
+      "odom", "detected_obstacle", tf2::TimePointZero);
+    head2link2obstacle = tf_buffer_.lookupTransform(
+      "head_2_link", "detected_obstacle", tf2::TimePointZero);
   } catch (tf2::TransformException & ex) {
-    RCLCPP_WARN(get_logger(), "Obstacle transform not found: %s", ex.what());
+    RCLCPP_WARN(get_logger(), "Obstacle transform(s) not found: %s", ex.what());
     return;
   }
 
@@ -60,8 +66,23 @@ ObstacleMonitorNode::control_cycle()
   double theta = atan2(y, x);
 
   RCLCPP_INFO(
-    get_logger(), "Obstacle detected at (%lf m, %lf m, , %lf m) = %lf rads",
+    get_logger(), "=================================================================================");
+
+  RCLCPP_INFO(
+    get_logger(), "(base_footprint -> detected_obstacle) at (%lf m, %lf m, , %lf m) = %lf rads",
     x, y, z, theta);
+
+  RCLCPP_INFO(
+    get_logger(), "(odom -> detected_obstacle) at (%lf m, %lf m, , %lf m) = %lf rads",
+    odom2obstacle.transform.translation.x, odom2obstacle.transform.translation.y, odom2obstacle.transform.translation.z, atan2(odom2obstacle.transform.translation.y, odom2obstacle.transform.translation.x));
+  
+  RCLCPP_INFO(
+    get_logger(), "(head_2_link -> detected_obstacle) at (%lf m, %lf m, , %lf m) = %lf rads",
+    head2link2obstacle.transform.translation.x, head2link2obstacle.transform.translation.y, head2link2obstacle.transform.translation.z, atan2(head2link2obstacle.transform.translation.y, head2link2obstacle.transform.translation.x));
+  
+  RCLCPP_INFO(
+    get_logger(), "==================================================================================");
+
 
   visualization_msgs::msg::Marker obstacle_arrow;
   obstacle_arrow.header.frame_id = "base_footprint";
