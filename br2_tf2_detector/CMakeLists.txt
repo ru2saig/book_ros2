@@ -27,6 +27,7 @@ add_library(${PROJECT_NAME} SHARED
   src/br2_tf2_detector/ObstacleDetectorNode.cpp
   src/br2_tf2_detector/ObstacleMonitorNode.cpp
   src/br2_tf2_detector/ObstacleDetectorImprovedNode.cpp
+  src/br2_tf2_detector/RobotMoveMonitorNode.cpp
 )
 ament_target_dependencies(${PROJECT_NAME} ${dependencies})
 

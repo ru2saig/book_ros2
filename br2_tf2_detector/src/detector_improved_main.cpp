@@ -16,6 +16,7 @@
 
 #include "br2_tf2_detector/ObstacleDetectorImprovedNode.hpp"
 #include "br2_tf2_detector/ObstacleMonitorNode.hpp"
+#include "br2_tf2_detector/RobotMoveMonitorNode.hpp"
 
 #include "rclcpp/rclcpp.hpp"
 
@@ -25,10 +26,12 @@ int main(int argc, char * argv[])
 
   auto obstacle_detector = std::make_shared<br2_tf2_detector::ObstacleDetectorImprovedNode>();
   auto obstacle_monitor = std::make_shared<br2_tf2_detector::ObstacleMonitorNode>();
+  auto robot_pos_monitor = std::make_shared<br2_tf2_detector::RobotMoveMonitorNode>();
 
   rclcpp::executors::SingleThreadedExecutor executor;
   executor.add_node(obstacle_detector->get_node_base_interface());
   executor.add_node(obstacle_monitor->get_node_base_interface());
+  executor.add_node(robot_pos_monitor->get_node_base_interface());
 
   executor.spin();
 
