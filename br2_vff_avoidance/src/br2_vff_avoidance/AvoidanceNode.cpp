@@ -83,31 +83,34 @@ VFFVectors
 AvoidanceNode::get_vff(const sensor_msgs::msg::LaserScan & scan)
 {
   // This is the obstacle radious in which an obstacle affects the robot
-  const float OBSTACLE_DISTANCE = 1.0;
+  const float OBSTACLE_DISTANCE = 2.0;
 
   // Init vectors
   VFFVectors vff_vector;
-  vff_vector.attractive = {OBSTACLE_DISTANCE, 0.0};  // Robot wants to go forward
+  vff_vector.attractive = {1.0, 0.0};  // Robot wants to go forward
   vff_vector.repulsive = {0.0, 0.0};
   vff_vector.result = {0.0, 0.0};
 
-  // Get the index of nearest obstacle
-  int min_idx = std::min_element(scan.ranges.begin(), scan.ranges.end()) - scan.ranges.begin();
+  int obstacles = 0;
+  float averageMag = 0.0;
 
-  // Get the distance to nearest obstacle
-  float distance_min = scan.ranges[min_idx];
+  for (int i = 0; i < scan.ranges.size(); i++) 
+    if (scan.ranges[i] < OBSTACLE_DISTANCE && scan.ranges[i] > scan.range_min) {
+      obstacles++;
+      
+      float angle = M_PI + scan.angle_min + scan.angle_increment * i;
+      
+      // The module of the vector is inverse to the distance to the obstacle
+      float mag = OBSTACLE_DISTANCE - scan.ranges[i];
 
-  // If the obstacle is in the area that affects the robot, calculate repulsive vector
-  if (distance_min < OBSTACLE_DISTANCE) {
-    float angle = scan.angle_min + scan.angle_increment * min_idx;
+      // Get cartesian (x, y) components from polar (angle, distance)
+      vff_vector.repulsive[0] += cos(angle) * mag;
+      vff_vector.repulsive[1] += sin(angle) * mag;
+    }
 
-    float oposite_angle = angle + M_PI;
-    // The module of the vector is inverse to the distance to the obstacle
-    float complementary_dist = OBSTACLE_DISTANCE - distance_min;
-
-    // Get cartesian (x, y) components from polar (angle, distance)
-    vff_vector.repulsive[0] = cos(oposite_angle) * complementary_dist;
-    vff_vector.repulsive[1] = sin(oposite_angle) * complementary_dist;
+  if (obstacles) {
+    vff_vector.repulsive[0] = (vff_vector.repulsive[0]/obstacles);
+    vff_vector.repulsive[1] = (vff_vector.repulsive[1]/obstacles);
   }
 
   // Calculate resulting vector adding attractive and repulsive vectors
