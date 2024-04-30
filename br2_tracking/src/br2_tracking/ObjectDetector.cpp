@@ -71,13 +71,29 @@ ObjectDetector::image_callback(const sensor_msgs::msg::Image::ConstSharedPtr & m
   cv::Mat1b filtered;
   cv::inRange(img_hsv, cv::Scalar(h, s, v), cv::Scalar(H, S, V), filtered);
 
-  auto moment = cv::moments(filtered, true);
-  cv::Rect bbx = cv::boundingRect(filtered);
+  // Using Canny edge detection to find objects; https://docs.opencv.org/3.4/da/d0c/tutorial_bounding_rects_circles.html
+  cv::Mat canny_output;
+  cv::Canny(filtered, canny_output, 100, 255);
 
-  auto m = cv::moments(filtered, true);
-  if (m.m00 < 0.000001) {return;}
-  int cx = m.m10 / m.m00;
-  int cy = m.m01 / m.m00;
+  std::vector<std::vector<cv::Point>> contours;
+  cv::findContours(canny_output, contours, cv::RETR_TREE, cv::CHAIN_APPROX_NONE);
+
+  std::vector<std::vector<cv::Point>> contoursPoly(contours.size());
+  std::vector<cv::Rect> boundingBoxes;
+  
+  for (size_t i = 0; i < contours.size(); i++) {
+    cv::approxPolyDP(contours[i], contoursPoly[i], 3, true);
+    if (cv::contourArea(contoursPoly[i]) > 250)
+      boundingBoxes.emplace_back(cv::boundingRect(contoursPoly[i])); // Another approach could be resizing
+  }
+
+  auto moment = cv::moments(filtered, true);
+
+  if (!boundingBoxes.size()) return;
+  cv::Rect bbx = boundingBoxes.back();
+
+  int cx = static_cast<int>(bbx.x + bbx.width/2);
+  int cy = static_cast<int>(bbx.y + bbx.height/2);
 
   vision_msgs::msg::Detection2D detection_msg;
   detection_msg.header = msg->header;
@@ -88,7 +104,9 @@ ObjectDetector::image_callback(const sensor_msgs::msg::Image::ConstSharedPtr & m
   detection_pub_->publish(detection_msg);
 
   if (debug_) {
-    cv::rectangle(cv_ptr->image, bbx, cv::Scalar(0, 0, 255), 3);
+    for (auto box : boundingBoxes)
+      cv::rectangle(cv_ptr->image, box, cv::Scalar(0, 0, 255), 3);
+    
     cv::circle(cv_ptr->image, cv::Point(cx, cy), 3, cv::Scalar(255, 0, 0), 3);
     cv::imshow("cv_ptr->image", cv_ptr->image);
     cv::waitKey(1);
