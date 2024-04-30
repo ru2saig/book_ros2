@@ -59,7 +59,6 @@ private:
 
   static constexpr float SPEED_LINEAR = 0.3f;
   static constexpr float SPEED_ANGULAR = 0.3f;
-  static constexpr double SENSOR_RESOLUTION = 0.00577402; // angle increment of the sensor
   static constexpr float OBSTACLE_DISTANCE = 1.0f;
 
   rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr scan_sub_;

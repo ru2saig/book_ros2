@@ -76,24 +76,20 @@ BumpGoNode::control_cycle()
       out_vel.linear.x = -SPEED_LINEAR;
 
       if (check_back_2_turn()) {
+        // Compute the time it would take to turn to the place which has no or the furthest obstacle
+      
+          
+
+        // Remove errenous values (this works for the current scenario)
+        std::for_each(last_scan_->ranges.begin(), last_scan_->ranges.end(), [this](float &scan) { 
+          if (scan < this->last_scan_->range_min && scan > this->last_scan_->range_max) scan = -1;
+        });
+
+        int max_index = std::distance(last_scan_->ranges.begin(), std::max_element(last_scan_->ranges.begin(), last_scan_->ranges.end()));
         
-        // compute turning time and all that fun stuff
-        // essentially, find the furtherest after backing up, and then turning for about how long it should take to get to there
-        float maximum_dist = -1;
-        int index = 0;
-        for(int i = 0; i < last_scan_->ranges.size(); i++) {
-          auto current_scan = last_scan_->ranges[i];
-          if (current_scan > 0.05 && current_scan < 25.0) {
-            if (current_scan > maximum_dist)
-            {
-              maximum_dist = current_scan;
-              index = i;
-            }
-          }
-        }
-        
-        sign_mult = (index > 333) ? 1 : -1;
-        float sec_float = (std::abs(333 - index) * SENSOR_RESOLUTION * 2)/0.3;
+        // calculate which way to turn and the time taken to turn
+        sign_mult = (max_index > last_scan_->ranges.size()/2) ? 1 : -1;
+        float sec_float = (std::abs(static_cast<int>(last_scan_->ranges.size()/2) - max_index) * last_scan_->angle_increment * 2)/SPEED_ANGULAR;
         // conversion into seconds + ns, for the first constructor of rclcpp::Duration
         int32_t seconds = int(sec_float);
         uint32_t ns = uint32_t((sec_float - seconds) * 10e9);
