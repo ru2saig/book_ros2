@@ -8,3 +8,6 @@
       - 200.0
       - 20.0
       - 200.0
+/head_tracker:
+  ros__parameters:
+    err: 0.01

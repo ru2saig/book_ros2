@@ -58,7 +58,7 @@ private:
   br2_tracking_msgs::msg::PanTiltCommand::UniquePtr last_command_;
   rclcpp::Time last_command_ts_;
 
-  PIDController pan_pid_, tilt_pid_;
+  float err { 0.01 };
 };
 
 }  // namespace br2_tracking

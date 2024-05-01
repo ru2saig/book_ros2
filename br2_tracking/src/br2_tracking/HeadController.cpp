@@ -33,9 +33,7 @@ using namespace std::chrono_literals;
 using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
 
 HeadController::HeadController()
-: LifecycleNode("head_tracker"),
-  pan_pid_(0.0, 1.0, 0.0, 0.3),
-  tilt_pid_(0.0, 1.0, 0.0, 0.3)
+: LifecycleNode("head_tracker")
 {
   command_sub_ = create_subscription<br2_tracking_msgs::msg::PanTiltCommand>(
     "command", 100,
@@ -44,15 +42,15 @@ HeadController::HeadController()
     "joint_state", rclcpp::SensorDataQoS(),
     std::bind(&HeadController::joint_state_callback, this, _1));
   joint_pub_ = create_publisher<trajectory_msgs::msg::JointTrajectory>("joint_command", 100);
+
+  declare_parameter("err", err);
+  get_parameter("err", err);
 }
 
 CallbackReturn
 HeadController::on_configure(const rclcpp_lifecycle::State & previous_state)
 {
   RCLCPP_INFO(get_logger(), "HeadController configured");
-
-  pan_pid_.set_pid(0.4, 0.05, 0.55);
-  tilt_pid_.set_pid(0.4, 0.05, 0.55);
 
   return CallbackReturn::SUCCESS;
 }
@@ -133,14 +131,19 @@ HeadController::control_sycle()
     command_msg.points[0].accelerations[1] = 0.1;
     command_msg.points[0].time_from_start = rclcpp::Duration(1s);
   } else {
-    double control_pan = pan_pid_.get_output(last_command_->pan);
-    double control_tilt = tilt_pid_.get_output(last_command_->tilt);
+    command_msg.points[0].positions[0] = last_state_->actual.positions[0] - last_command_->pan;
+    command_msg.points[0].positions[1] = last_state_->actual.positions[1] - last_command_->tilt;
 
-    command_msg.points[0].positions[0] = last_state_->actual.positions[0] - control_pan;
-    command_msg.points[0].positions[1] = last_state_->actual.positions[1] - control_tilt;
+    // Closer to the target distance, the smaller the velocity will be...
+    float pan_vel = std::clamp(last_command_->pan, -0.5, 0.5);
+    float tilt_vel = std::clamp(last_command_->tilt, -0.5, 0.5);
 
-    command_msg.points[0].velocities[0] = 0.5;
-    command_msg.points[0].velocities[1] = 0.5;
+    // until it close enough to 0.0, to say that the object is in the centre
+    if (std::abs(pan_vel) < err) pan_vel = 0.0;
+    if (std::abs(tilt_vel) < err) tilt_vel = 0.0; 
+
+    command_msg.points[0].velocities[0] = pan_vel;
+    command_msg.points[0].velocities[1] = tilt_vel;
     command_msg.points[0].accelerations[0] = 0.5;
     command_msg.points[0].accelerations[1] = 0.5;
   }
