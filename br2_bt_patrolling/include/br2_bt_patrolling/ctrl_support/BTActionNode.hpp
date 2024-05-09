@@ -37,7 +37,7 @@ public:
     const BT::NodeConfiguration & conf)
   : BT::ActionNodeBase(xml_tag_name, conf), action_name_(action_name)
   {
-    node_ = config().blackboard->get<typename NodeT::SharedPtr>("node");
+    node_ = config().blackboard->template get<typename NodeT::SharedPtr>("node");
 
     server_timeout_ = 1s;
 
@@ -247,9 +247,9 @@ protected:
   void increment_recovery_count()
   {
     int recovery_count = 0;
-    config().blackboard->get<int>("number_recoveries", recovery_count);  // NOLINT
+    config().blackboard->template get<int>("number_recoveries", recovery_count);  // NOLINT
     recovery_count += 1;
-    config().blackboard->set<int>("number_recoveries", recovery_count);  // NOLINT
+    config().blackboard->template set<int>("number_recoveries", recovery_count);  // NOLINT
   }
 
   std::string action_name_;
