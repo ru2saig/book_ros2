@@ -111,6 +111,11 @@ AvoidanceNode::get_vff(const sensor_msgs::msg::LaserScan & scan)
   if (obstacles) {
     vff_vector.repulsive[0] = (vff_vector.repulsive[0]/obstacles);
     vff_vector.repulsive[1] = (vff_vector.repulsive[1]/obstacles);
+
+      // normalizing
+    double mag = std::sqrt(vff_repulsive[1]*vff_repulsive[1] + vff_repulsive[0]*vff_repulsive[0]);
+    vff_repulsive[0] = vff_repulsive[0]/mag;
+    vff_repulsive[1] = vff_repulsive[1]/mag;
   }
 
   // Calculate resulting vector adding attractive and repulsive vectors
