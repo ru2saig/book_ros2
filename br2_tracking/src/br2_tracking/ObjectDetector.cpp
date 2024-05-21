@@ -15,7 +15,7 @@
 #include "pcl/common/common.h"
 #include "pcl/point_types.h"
 #include "pcl/point_cloud.h"
-include "pcl/point_types_conversion.h"
+#include "pcl/point_types_conversion.h"
 #include "pcl/filters/extract_indices.h"
 #include "tf2/LinearMath/Transform.h"
 #include "tf2/exceptions.h"
@@ -115,10 +115,7 @@ ObjectDetector::pointcloud_callback(const sensor_msgs::msg::PointCloud2::ConstSh
   if (obstacle->indices.size() < 20)
       return;
 
-  // Finding the AABB
-  // pcl::PointXYZHSV centroid;
-  // pcl::computeCentroid(*pointsHSV, obstacle->indices, centroid);
-
+  // Finding the BoundingBox
   Eigen::Vector4f minPoint;
   Eigen::Vector4f maxPoint;
   
