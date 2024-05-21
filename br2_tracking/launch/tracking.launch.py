@@ -37,7 +37,8 @@ def generate_launch_description():
         remappings=[
           ('input_image', '/head_front_camera/rgb/image_raw'),
           ('joint_state', '/head_controller/state'),
-          ('joint_command', '/head_controller/joint_trajectory')
+          ('joint_command', '/head_controller/joint_trajectory'),
+          ('point_cloud', '/head_front_camera/depth_registered/points')
         ],
         output='screen'
     )

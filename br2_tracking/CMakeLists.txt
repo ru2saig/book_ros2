@@ -14,6 +14,10 @@ find_package(vision_msgs REQUIRED)
 find_package(control_msgs REQUIRED)
 find_package(image_transport REQUIRED)
 find_package(cv_bridge REQUIRED)
+find_package(pcl_ros REQUIRED)
+find_package(tf2_ros REQUIRED)
+find_package(tf2_eigen REQUIRED)
+find_package(visualization_msgs REQUIRED)
 
 find_package(OpenCV REQUIRED)
 
@@ -27,6 +31,10 @@ set(dependencies
   control_msgs
   image_transport
   cv_bridge
+  pcl_ros
+  tf2_ros
+  tf2_eigen
+  visualization_msgs
   OpenCV
 )
 
