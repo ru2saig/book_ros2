@@ -15,7 +15,7 @@
 #include "pcl/common/common.h"
 #include "pcl/point_types.h"
 #include "pcl/point_cloud.h"
-#include "pcl/point_types_conversion.h"
+include "pcl/point_types_conversion.h"
 #include "pcl/filters/extract_indices.h"
 #include "tf2/LinearMath/Transform.h"
 #include "tf2/exceptions.h"

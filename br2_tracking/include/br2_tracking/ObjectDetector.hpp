@@ -51,7 +51,6 @@ private:
   rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr cloud_sub_;
   
   rclcpp::Publisher<vision_msgs::msg::Detection2D>::SharedPtr detection_pub_;
-  // TODO: Figure out how to display this; could I use a Marker? Perhaps a line strip?
   rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr box_pub_;
 
   // HSV ranges for detection [h - H] [s - S] [v - V]
