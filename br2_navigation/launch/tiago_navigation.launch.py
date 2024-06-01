@@ -30,6 +30,8 @@ def generate_launch_description():
     params_file = LaunchConfiguration('params_file')
     slam = LaunchConfiguration('slam')
     map_yaml_file = LaunchConfiguration('map')
+    mask_yaml_file = LaunchConfiguration('mask')
+    bt_nav_xml_file = LaunchConfiguration('default_nav_to_pose_bt_xml')
     use_sim_time = LaunchConfiguration('use_sim_time')
     autostart = LaunchConfiguration('autostart')
 
@@ -48,6 +50,16 @@ def generate_launch_description():
         'map',
         default_value=os.path.join(launch_rmw_dir, 'maps', 'home.yaml'),
         description='Full path to map yaml file to load')
+
+    declare_mask_yaml_cmd = DeclareLaunchArgument(
+        'mask',
+        default_value=os.path.join(launch_rmw_dir, 'maps', 'keepout_mask.yaml'),
+        description='Full path to mask yaml file to load')
+
+    declare_bt_xml_cmd = DeclareLaunchArgument(
+        'default_nav_to_pose_bt_xml',
+        default_value=os.path.join(launch_rmw_dir, 'behavior_tree', 'navigate_to_pose_custom.xml'),
+        description='Full path to the behaviour tree (.xml) for the navigation stack')
 
     declare_use_sim_time_cmd = DeclareLaunchArgument(
         'use_sim_time',
@@ -79,9 +91,10 @@ def generate_launch_description():
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(os.path.join(launch_rmw_dir, 'launch', 'navigation_launch.py')),
             launch_arguments={'use_sim_time': use_sim_time,
+                              'mask': mask_yaml_file,
+                              'default_nav_to_pose_bt_xml': bt_nav_xml_file,
                               'autostart': autostart,
                               'params_file': params_file,
-                              'use_lifecycle_mgr': 'false',
                               'map_subscribe_transient_local': 'true'}.items()),
     ])
 
@@ -90,6 +103,8 @@ def generate_launch_description():
     ld.add_action(declare_params_file_cmd)
     ld.add_action(declare_slam_cmd)
     ld.add_action(declare_map_yaml_cmd)
+    ld.add_action(declare_mask_yaml_cmd)
+    ld.add_action(declare_bt_xml_cmd)
     ld.add_action(declare_use_sim_time_cmd)
     ld.add_action(declare_autostart_cmd)
 
